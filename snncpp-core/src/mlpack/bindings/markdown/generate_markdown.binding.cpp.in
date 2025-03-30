@@ -1,0 +1,91 @@
+/**
+ * @file markdown/generate_markdown.binding.cpp.in
+ * @author Ryan Curtin
+ *
+ * Print Markdown for a specific binding.  This provides two utility
+ * methods---one that prints info for a table of contents, and one that prints
+ * the Markdown bindings themselves.
+ *
+ * mlpack is free software; you may redistribute it and/or modify it under the
+ * terms of the 3-clause BSD license.  You should have received a copy of the
+ * 3-clause BSD license along with mlpack.  If not, see
+ * http://www.opensource.org/licenses/BSD-3-Clause for more information.
+ */
+#include <mlpack/core.hpp>
+#include "generate_markdown.${BINDING}.hpp"
+#include "binding_info.hpp"
+#include "print_docs.hpp"
+
+${INCLUDE_MAIN_FILES}
+
+using namespace std;
+
+namespace mlpack {
+namespace bindings {
+namespace markdown {
+
+void Print${BINDING}Headers()
+{
+  // Stores the names of languages this binding works with.
+  vector<string> languages;
+
+  // Stores if a wrapper is added for a particular language.
+  vector<bool> addWrapperDocs;
+
+  ${LANGUAGES_PUSH_BACK_CODE}
+  ${WRAPPER_PUSH_BACK_CODE}
+
+  // Find whether or not we print anything for the current language.
+  size_t langIndex = languages.size();
+  for (size_t i = 0; i < languages.size(); ++i)
+  {
+    if (languages[i] == BindingInfo::Language())
+    {
+      langIndex = i;
+      break;
+    }
+  }
+
+  // Don't do anything if we didn't find the language.
+  if (langIndex == languages.size())
+    return;
+
+  PrintHeaders("${BINDING}", addWrapperDocs[langIndex]);
+}
+
+void Print${BINDING}Docs()
+{
+  // Stores the names of languages this binding works with.
+  vector<string> languages;
+
+  // Stores the names of all methods in a vector.
+  vector<string> validMethods;
+
+  // Stores if a wrapper is added for a particular language.
+  vector<bool> addWrapperDocs;
+
+  ${LANGUAGES_PUSH_BACK_CODE}
+  ${WRAPPER_PUSH_BACK_CODE}
+  ${VALID_METHODS_PUSH_BACK_CODE}
+
+  // Find whether or not we print anything for the current language.
+  size_t langIndex = languages.size();
+  for (size_t i = 0; i < languages.size(); ++i)
+  {
+    if (languages[i] == BindingInfo::Language())
+    {
+      langIndex = i;
+      break;
+    }
+  }
+
+  // Don't do anything if we didn't find the language.
+  if (langIndex == languages.size())
+    return;
+
+  PrintDocs("${BINDING}", validMethods, addWrapperDocs[langIndex]);
+}
+
+} // namespace markdown
+} // namespace bindings
+} // namespace mlpack

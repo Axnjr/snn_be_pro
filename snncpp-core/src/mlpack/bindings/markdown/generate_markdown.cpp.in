@@ -1,0 +1,119 @@
+/**
+ * @file markdown/generate_markdown.cpp.in
+ * @author Ryan Curtin
+ *
+ * This file is configured by CMake to generate all of the Markdown required by
+ * the project.
+ *
+ * mlpack is free software; you may redistribute it and/or modify it under the
+ * terms of the 3-clause BSD license.  You should have received a copy of the
+ * 3-clause BSD license along with mlpack.  If not, see
+ * http://www.opensource.org/licenses/BSD-3-Clause for more information.
+ */
+#include <mlpack/core.hpp>
+#include "binding_info.hpp"
+#include "print_doc_functions.hpp"
+${MARKDOWN_INCLUDE_CODE}
+
+using namespace mlpack;
+using namespace mlpack::bindings;
+using namespace mlpack::bindings::markdown;
+using namespace std;
+
+void usage(const char* name)
+{
+  cerr << "Usage: " << name << " <language> <mode>" << endl;
+  cerr << "  <language> must be one of ${MARKDOWN_ALL_LANGUAGES_LIST}" << endl;
+  cerr << "  <mode> must be 'docs' or 'sidebar'" << endl;
+  exit(1);
+}
+
+int main(int argc, char** argv)
+{
+  // Sanity check: make sure the user told us what language they want to print
+  // docs for.
+  if (argc != 3)
+    usage(argv[0]);
+
+  // This will throw an exception if the language is not known later on.
+  BindingInfo::Language() = std::string(argv[1]);
+  const std::string& mode = std::string(argv[2]);
+
+  if (mode == "sidebar")
+  {
+    cout << "<ul>" << endl;
+    cout << "<li class=\"page_title\">" << endl;
+    cout << "<b>mlpack " << PrintLanguage(BindingInfo::Language())
+        << " binding documentation</b>" << endl;
+    cout << "<a href=\"#\">[top]</a>" << endl;
+    cout << "<ul>" << endl;
+
+    // The links to the data type sections get put here.
+    cout << "<li><a href=\"LINKROOTuser/bindings/" << BindingInfo::Language()
+        << ".html#mlpack-overview\">Overview</a></li>" << endl;
+    cout << "<li><a href=\"LINKROOTquickstart/" << BindingInfo::Language()
+        << ".html\">" << PrintLanguage(BindingInfo::Language())
+        << " Quickstart</a></li>" << endl;
+    cout << "<li><a href=\"LINKROOTuser/bindings/" << BindingInfo::Language()
+        << ".html#data-formats\">Data Formats</a></li>" << endl;
+
+    ${MARKDOWN_HEADER_CODE}
+
+    cout << "</ul>" << endl;
+    cout << "</li>" << endl;
+    cout << "</ul>" << endl;
+    cout << "</div>" << endl;
+  }
+  else if (mode == "docs")
+  {
+    // Create the header for the given language.
+    cout << "# mlpack " << PrintLanguage(BindingInfo::Language())
+        << " binding documentation" << endl;
+    cout << endl;
+
+    /**
+     * "mlpack overview" section.  This will go at the top of the page.
+     */
+    cout << "## mlpack overview" << endl;
+    cout << endl;
+    cout << "mlpack is an intuitive, fast, and flexible header-only C++ machine"
+        << " learning library with bindings to other languages.  It aims to "
+        << "provide fast, lightweight implementations of both common and "
+        << "cutting-edge machine learning algorithms." << endl;
+    cout << endl;
+    cout << "This reference page details mlpack's bindings to ";
+    if (BindingInfo::Language() == "cli")
+      cout << "the command-line";
+    else
+      cout << PrintLanguage(BindingInfo::Language());
+    cout << "." << endl;
+    cout << endl;
+    cout << "Further useful mlpack documentation links are given below.";
+    cout << endl << endl;
+    cout << " - [mlpack homepage](https://www.mlpack.org/)" << endl;
+    cout << " - [mlpack on Github](https://github.com/mlpack/mlpack)" << endl;
+    cout << " - [mlpack main documentation page]"
+        << "(https://www.mlpack.org/doc/index.html)" << endl;
+    cout << endl;
+    cout << "See also the quickstart guide for "
+        << PrintLanguage(BindingInfo::Language()) << ":" << endl;
+    cout << endl;
+    cout << " - [" << PrintLanguage(BindingInfo::Language())
+        << " Quickstart](../../quickstart/" << BindingInfo::Language() << ".md)"
+        << endl;
+    cout << endl;
+
+    /**
+     * Discussion of different data types section.  This goes just below the
+     * overview section at the top of the page.
+     */
+    cout << PrintTypeDocs() << endl;
+
+    ${MARKDOWN_CALL_CODE}
+  }
+  else
+  {
+    // Unknown mode.
+    usage(argv[0]);
+  }
+}
