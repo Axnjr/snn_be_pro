@@ -125,9 +125,4 @@ Check their individual `readme.md` file to get started !
 ## 📜 License
 MIT License – Free to use and modify.
 
-## 📞 Contact
-For inquiries, reach out at **[your-email@example.com]** or join our Discord.
-
----
-
 🔗 **Stay Updated:** Follow us on GitHub for the latest releases and updates!
