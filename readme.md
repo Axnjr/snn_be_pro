@@ -7,6 +7,18 @@ An all-in-one AI development suite that simplifies, accelerates, and secures AI 
 - Sheezy
 - Piyush
 
+## 🏗 Components
+Check their individual `readme.md` file to get started !
+
+| Component        | Description |
+|-----------------|-------------|
+| **llm-ui**      | A modern, minimalistic web interface to interact with AI models, visualize data, and test models in real-time. |
+| **snncpp-core** | High-performance C++ core responsible for executing models with optimized inference, parallel processing, and memory-efficient computations. |
+| **server**      | Backend API layer (built in Rust/Go) that orchestrates model training, inference, database interactions, and serves API requests. |
+| **ollama-client** | Secure interface to integrate and execute large language models (LLMs) on-device, ensuring privacy and compliance with industry standards. |
+| **model-builder** | Drag-and-drop visual model builder that enables users to design, train, and deploy AI models without writing code. |
+
+
 ## 🚀 Features
 
 ### 🖱️ Drag-and-Drop Visual Model Builder
