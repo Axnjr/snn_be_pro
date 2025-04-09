@@ -1,0 +1,45 @@
+[package]
+authors = ["nathanielsimard <nathaniel.simard.42@gmail.com>"]
+edition.workspace = true
+license.workspace = true
+name = "text-classification"
+publish = false
+version.workspace = true
+
+[features]
+default = ["burn/dataset", "burn/sqlite-bundled"]
+f16 = []
+ndarray = ["burn/ndarray"]
+ndarray-blas-accelerate = ["burn/ndarray", "burn/accelerate"]
+ndarray-blas-netlib = ["burn/ndarray", "burn/blas-netlib"]
+ndarray-blas-openblas = ["burn/ndarray", "burn/openblas"]
+tch-cpu = ["burn/tch"]
+tch-gpu = ["burn/tch"]
+wgpu = ["burn/wgpu"]
+vulkan = ["burn/vulkan", "burn/default"]
+remote = ["burn/remote"]
+cuda = ["burn/cuda"]
+hip = ["burn/hip"]
+metal = ["burn/metal"]
+
+[dependencies]
+# Burn
+burn = { path = "../../crates/burn", features = [
+    "train",
+    "ndarray",
+    "std",
+    "metrics",
+    "autotune",
+    "fusion",
+    "default",
+], default-features = false }
+
+# Tokenizer
+tokenizers = { version = "0.21.1", default-features = false, features = [
+  "onig",
+  "http",
+] }
+
+# Utils
+derive-new = { workspace = true }
+serde = { workspace = true, features = ["std", "derive"] }

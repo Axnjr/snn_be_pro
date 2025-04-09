@@ -1,0 +1,19 @@
+[package]
+authors = ["Dilshod Tadjibaev (@antimora)"]
+edition.workspace = true
+license.workspace = true
+name = "onnx-inference"
+publish = false
+version.workspace = true
+
+[features]
+default = ["embedded-model"]
+
+embedded-model = []
+
+[dependencies]
+burn = { path = "../../crates/burn", features = ["ndarray", "dataset", "vision"] }
+serde = { workspace = true }
+
+[build-dependencies]
+burn-import = { path = "../../crates/burn-import" }

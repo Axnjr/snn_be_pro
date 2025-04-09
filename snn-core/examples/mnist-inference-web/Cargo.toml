@@ -1,0 +1,28 @@
+[package]
+authors = ["Dilshod Tadjibaev (@antimora)"]
+edition.workspace = true
+license = "MIT OR Apache-2.0"
+name = "mnist-inference-web"
+publish = false
+version.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[features]
+default = ["ndarray"]
+
+ndarray = ["burn/ndarray"]
+wgpu = ["burn/wgpu"]
+
+[dependencies]
+burn = { path = "../../crates/burn", default-features = false }
+serde = { workspace = true }
+console_error_panic_hook = { workspace = true }
+
+# Wasm dependencies
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+js-sys = "0.3"
+# https://github.com/rust-random/getrandom/#webassembly-support
+getrandom = { version = "0.2", features = ["js"] }

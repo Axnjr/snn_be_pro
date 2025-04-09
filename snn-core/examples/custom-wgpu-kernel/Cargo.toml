@@ -1,0 +1,24 @@
+[package]
+authors = ["nathanielsimard <nathaniel.simard.42@gmail.com>"]
+edition.workspace = true
+license.workspace = true
+name = "custom-wgpu-kernel"
+publish = false
+version.workspace = true
+
+[dependencies]
+burn = { path = "../../crates/burn", default-features = false, features = [
+    "autodiff",
+    "wgpu",
+    "autotune",
+    "template",
+] }
+cubecl = { workspace = true, features = ["wgpu"] }
+
+# Serialization
+log = { workspace = true }
+serde = { workspace = true, features = ["std", "derive"] }
+
+# Wgpu internal dependencies
+derive-new = { workspace = true }
+bytemuck = { workspace = true }
