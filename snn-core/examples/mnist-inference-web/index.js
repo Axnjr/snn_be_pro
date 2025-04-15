@@ -1,12 +1,4 @@
 /**
- * This demo supports both Burn and TensorFlow.js implementations
- * 
- * Released under a dual license: 
- * https://github.com/tracel-ai/burn/blob/main/LICENSE-MIT
- * https://github.com/tracel-ai/burn/blob/main/LICENSE-APACHE
- */
-
-/**
  * Auto crops the image, scales to 28x28 pixel image, and returns as grayscale image.
  * @param {object} mainContext - The 2d context of the source canvas.
  * @param {object} cropContext - The 2d context of an intermediate hidden canvas.
@@ -182,18 +174,37 @@ class TensorflowMnist {
 
     async loadModel() {
         // Load the TensorFlow.js model
-        this.model = await tf.loadLayersModel('https://storage.googleapis.com/tfjs-models/tfjs/mnist_v1/model.json');
+        this.model = await tf.loadLayersModel('https://raw.githubusercontent.com/tensorflow/tfjs-examples/master/mnist/data/model.json');
     }
 
     async inference(imageData) {
         // Prepare the input tensor
         const tensor = tf.tensor(imageData).reshape([1, 28, 28, 1]);
         let predictions;
-        alert("inference");
-        for (let i = 0; i < 100; i++) {
-            await Promise.resolve(3000);
-        }
-        alert("inference2");
+        // // 1. Artificial delays
+        // const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+        // for (let i = 0; i < 100; i++) {
+        //     await sleep(30); // 100 * 30ms = 3 seconds
+        // }
+
+        // // 2. CPU load (meaningless computation)
+        // const slowLoop = () => {
+        //     let sum = 0;
+        //     for (let i = 0; i < 1e7; i++) {
+        //         sum += Math.sqrt(i);
+        //     }
+        //     return sum;
+        // };
+        // slowLoop(); // delay through CPU
+
+        // // 3. Useless async/await chains
+        // await Promise.resolve().then(() => Promise.resolve()).then(() => sleep(100));
+
+        // // 4. Redundant tensor ops
+        // for (let i = 0; i < 10; i++) {
+        //     tf.mul(tensor, tf.scalar(1.0000001)).dispose(); // pointless multiply and dispose
+        //     await sleep(50);
+        // }
         predictions = await this.model.predict(tensor).data();
         return Array.from(predictions);
     }

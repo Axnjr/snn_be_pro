@@ -39,130 +39,226 @@
     />
 
     <style>
-      h1 {
-        padding: 15px;
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
       }
-      th,
-      td {
+      h1 {
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 24px;
+      }
+      .container {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .implementation {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background: #f9f9f9;
+      }
+      .implementation h2 {
+        text-align: center;
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 18px;
+        color: #333;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th, td {
         padding: 5px;
         text-align: center;
-        vertical-align: middle;
+        font-size: 14px;
       }
-      .version-selector {
-        padding: 15px;
-        margin-bottom: 20px;
+      canvas {
+        border: 1px solid #aaa;
+        background: white;
       }
-      .version-selector select {
-        padding: 8px;
-        font-size: 16px;
+      .drawing-canvas {
+        width: 200px;
+        height: 200px;
+      }
+      .scaled-canvas {
+        width: 80px;
+        height: 80px;
+      }
+      .chart-canvas {
+        width: 300px;
+        height: 200px;
+      }
+      button {
+        padding: 6px 12px;
+        background: #247ABF;
+        color: white;
+        border: none;
         border-radius: 4px;
+        cursor: pointer;
+        margin-top: 5px;
+        font-size: 14px;
+      }
+      button:hover {
+        background: #1a5a8f;
       }
     </style>
   </head>
   <body>
     <h1>MNIST Inference Demo</h1>
     
-    <div class="version-selector">
-      <label for="version">Select Implementation: </label>
-      <select id="version">
-        <option value="burn">Burn (Rust WASM)</option>
-        <option value="tensorflow">TensorFlow.js</option>
-      </select>
+    <div class="container">
+      <!-- Burn Implementation -->
+      <div class="implementation">
+        <h2>Burn (Rust WASM)</h2>
+        <table>
+          <tr>
+            <th>Draw a digit here</th>
+            <th>Cropped and scaled</th>
+            <th>Probability result</th>
+          </tr>
+          <tr>
+            <td>
+              <canvas id="burn-main-canvas" class="drawing-canvas"></canvas>
+            </td>
+            <td>
+              <canvas id="burn-scaled-canvas" class="scaled-canvas"></canvas>
+              <canvas id="burn-crop-canvas" style="display: none"></canvas>
+            </td>
+            <td>
+              <canvas id="burn-chart" class="chart-canvas"></canvas>
+            </td>
+          </tr>
+          <tr>
+            <td><button id="burn-clear">Clear</button></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- TensorFlow.js Implementation -->
+      <div class="implementation">
+        <h2>TensorFlow.js</h2>
+        <table>
+          <tr>
+            <th>Draw a digit here</th>
+            <th>Cropped and scaled</th>
+            <th>Probability result</th>
+          </tr>
+          <tr>
+            <td>
+              <canvas id="tf-main-canvas" class="drawing-canvas"></canvas>
+            </td>
+            <td>
+              <canvas id="tf-scaled-canvas" class="scaled-canvas"></canvas>
+              <canvas id="tf-crop-canvas" style="display: none"></canvas>
+            </td>
+            <td>
+              <canvas id="tf-chart" class="chart-canvas"></canvas>
+            </td>
+          </tr>
+          <tr>
+            <td><button id="tf-clear">Clear</button></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </table>
+      </div>
     </div>
-
-    <table>
-      <tr>
-        <th>Draw a digit here</th>
-        <th>Cropped and scaled</th>
-        <th>Probability result</th>
-      </tr>
-      <tr>
-        <td>
-          <canvas id="main-canvas" width="300" height="300" style="border: 1px solid #aaa"></canvas>
-        </td>
-        <td>
-          <canvas
-            id="scaled-canvas"
-            width="28"
-            height="28"
-            style="border: 1px solid #aaa; width: 100px; height: 100px"
-          ></canvas>
-          <canvas id="crop-canvas" width="28" height="28" style="display: none"></canvas>
-        </td>
-        <td>
-          <canvas id="chart" style="border: 1px solid #aaa; width: 600px; height: 300px"></canvas>
-        </td>
-      </tr>
-      <tr>
-        <td><button id="clear">Clear</button></td>
-        <td></td>
-        <td></td>
-      </tr>
-    </table>
-
-    <div></div>
 
     <script type="module">
       import { $, cropScaleGetImageData, chartConfigBuilder, initMnistDemo } from "./index.js";
 
-      const chart = chartConfigBuilder($("chart"));
-      const mainCanvasEl = $("main-canvas");
-      const scaledCanvasEl = $("scaled-canvas");
-      const cropEl = $("crop-canvas");
-      const mainContext = mainCanvasEl.getContext("2d", { willReadFrequently: true });
-      const cropContext = cropEl.getContext("2d", { willReadFrequently: true });
-      const scaledContext = scaledCanvasEl.getContext("2d", { willReadFrequently: true });
+      // Initialize Burn implementation
+      const burnChart = chartConfigBuilder($("burn-chart"));
+      const burnMainCanvasEl = $("burn-main-canvas");
+      const burnScaledCanvasEl = $("burn-scaled-canvas");
+      const burnCropEl = $("burn-crop-canvas");
+      const burnMainContext = burnMainCanvasEl.getContext("2d", { willReadFrequently: true });
+      const burnCropContext = burnCropEl.getContext("2d", { willReadFrequently: true });
+      const burnScaledContext = burnScaledCanvasEl.getContext("2d", { willReadFrequently: true });
 
-      const fabricCanvas = new fabric.Canvas(mainCanvasEl, {
+      const burnFabricCanvas = new fabric.Canvas(burnMainCanvasEl, {
+        isDrawingMode: true,
+      });
+
+      // Initialize TensorFlow implementation
+      const tfChart = chartConfigBuilder($("tf-chart"));
+      const tfMainCanvasEl = $("tf-main-canvas");
+      const tfScaledCanvasEl = $("tf-scaled-canvas");
+      const tfCropEl = $("tf-crop-canvas");
+      const tfMainContext = tfMainCanvasEl.getContext("2d", { willReadFrequently: true });
+      const tfCropContext = tfCropEl.getContext("2d", { willReadFrequently: true });
+      const tfScaledContext = tfScaledCanvasEl.getContext("2d", { willReadFrequently: true });
+
+      const tfFabricCanvas = new fabric.Canvas(tfMainCanvasEl, {
         isDrawingMode: true,
       });
 
       const backgroundColor = "rgba(255, 255, 255, 255)"; // White with solid alpha
-      fabricCanvas.freeDrawingBrush.width = 25;
-      fabricCanvas.backgroundColor = backgroundColor;
+      
+      // Configure both canvases
+      [burnFabricCanvas, tfFabricCanvas].forEach(canvas => {
+        canvas.freeDrawingBrush.width = 25;
+        canvas.backgroundColor = backgroundColor;
+      });
 
-      let currentDemo = null;
+      let burnDemo = null;
+      let tfDemo = null;
 
-      async function initializeVersion(version) {
-        // Clear the canvas
-        fabricCanvas.clear();
-        fabricCanvas.backgroundColor = backgroundColor;
-        fabricCanvas.renderAll();
-        mainContext.clearRect(0, 0, mainCanvasEl.width, mainCanvasEl.height);
-        scaledContext.clearRect(0, 0, scaledCanvasEl.width, scaledCanvasEl.height);
-        chart.data.datasets[0].data = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
-        chart.update();
+      async function initializeDemos() {
+        // Initialize Burn demo
+        burnDemo = await initMnistDemo(
+          "burn",
+          burnFabricCanvas,
+          burnMainContext,
+          burnCropContext,
+          burnScaledContext,
+          burnChart,
+          50
+        );
 
-        // Initialize the new version
-        currentDemo = await initMnistDemo(
-          version,
-          fabricCanvas,
-          mainContext,
-          cropContext,
-          scaledContext,
-          chart,
-          version === "burn" ? 50 : 5000
+        // Initialize TensorFlow demo
+        tfDemo = await initMnistDemo(
+          "tensorflow",
+          tfFabricCanvas,
+          tfMainContext,
+          tfCropContext,
+          tfScaledContext,
+          tfChart,
+          5000
         );
       }
 
-      // Handle version changes
-      $("version").addEventListener("change", async (event) => {
-        await initializeVersion(event.target.value);
-        alert(`done: ${event.target.value}`);
-      });
+      // Initialize both demos
+      initializeDemos();
 
-      // Initialize with default version (Burn)
-      initializeVersion("burn");
+      // Clear button handlers
+      $("burn-clear").onclick = function () {
+        burnFabricCanvas.clear();
+        burnFabricCanvas.backgroundColor = backgroundColor;
+        burnFabricCanvas.renderAll();
+        burnMainContext.clearRect(0, 0, burnMainCanvasEl.width, burnMainCanvasEl.height);
+        burnScaledContext.clearRect(0, 0, burnScaledCanvasEl.width, burnScaledCanvasEl.height);
+        burnChart.data.datasets[0].data = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+        burnChart.update();
+      };
 
-      // Clear button handler
-      $("clear").onclick = function () {
-        fabricCanvas.clear();
-        fabricCanvas.backgroundColor = backgroundColor;
-        fabricCanvas.renderAll();
-        mainContext.clearRect(0, 0, mainCanvasEl.width, mainCanvasEl.height);
-        scaledContext.clearRect(0, 0, scaledCanvasEl.width, scaledCanvasEl.height);
-        chart.data.datasets[0].data = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
-        chart.update();
+      $("tf-clear").onclick = function () {
+        tfFabricCanvas.clear();
+        tfFabricCanvas.backgroundColor = backgroundColor;
+        tfFabricCanvas.renderAll();
+        tfMainContext.clearRect(0, 0, tfMainCanvasEl.width, tfMainCanvasEl.height);
+        tfScaledContext.clearRect(0, 0, tfScaledCanvasEl.width, tfScaledCanvasEl.height);
+        tfChart.data.datasets[0].data = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+        tfChart.update();
       };
     </script>
   </body>
