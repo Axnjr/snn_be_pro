@@ -1,0 +1,17 @@
+{
+  "name": "mnist-inference-web",
+  "type": "module",
+  "collaborators": [
+    "Dilshod Tadjibaev (@antimora)"
+  ],
+  "version": "0.17.0",
+  "license": "MIT OR Apache-2.0",
+  "files": [
+    "mnist_inference_web_bg.wasm",
+    "mnist_inference_web.js"
+  ],
+  "main": "mnist_inference_web.js",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

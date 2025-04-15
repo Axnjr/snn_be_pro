@@ -9,7 +9,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Burn MNIST Inference Web Demo</title>
+    <title>MNIST Inference Demo (Burn & TensorFlow.js)</title>
 
     <script
       src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"
@@ -29,6 +29,8 @@
       crossorigin="anonymous"
     ></script>
 
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.15.0/dist/tf.min.js"></script>
+
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/normalize.min.css@8.0.1/normalize.min.css"
@@ -46,10 +48,27 @@
         text-align: center;
         vertical-align: middle;
       }
+      .version-selector {
+        padding: 15px;
+        margin-bottom: 20px;
+      }
+      .version-selector select {
+        padding: 8px;
+        font-size: 16px;
+        border-radius: 4px;
+      }
     </style>
   </head>
   <body>
-    <h1>Burn MNIST Inference Demo</h1>
+    <h1>MNIST Inference Demo</h1>
+    
+    <div class="version-selector">
+      <label for="version">Select Implementation: </label>
+      <select id="version">
+        <option value="burn">Burn (Rust WASM)</option>
+        <option value="tensorflow">TensorFlow.js</option>
+      </select>
+    </div>
 
     <table>
       <tr>
@@ -84,12 +103,9 @@
     <div></div>
 
     <script type="module">
-      import { $, cropScaleGetImageData, toFixed, chartConfigBuilder } from "./index.js";
-
-      import { default as wasm, Mnist } from "./pkg/mnist_inference_web.js";
+      import { $, cropScaleGetImageData, chartConfigBuilder, initMnistDemo } from "./index.js";
 
       const chart = chartConfigBuilder($("chart"));
-
       const mainCanvasEl = $("main-canvas");
       const scaledCanvasEl = $("scaled-canvas");
       const cropEl = $("crop-canvas");
@@ -105,52 +121,49 @@
       fabricCanvas.freeDrawingBrush.width = 25;
       fabricCanvas.backgroundColor = backgroundColor;
 
+      let currentDemo = null;
+
+      async function initializeVersion(version) {
+        // Clear the canvas
+        fabricCanvas.clear();
+        fabricCanvas.backgroundColor = backgroundColor;
+        fabricCanvas.renderAll();
+        mainContext.clearRect(0, 0, mainCanvasEl.width, mainCanvasEl.height);
+        scaledContext.clearRect(0, 0, scaledCanvasEl.width, scaledCanvasEl.height);
+        chart.data.datasets[0].data = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+        chart.update();
+
+        // Initialize the new version
+        currentDemo = await initMnistDemo(
+          version,
+          fabricCanvas,
+          mainContext,
+          cropContext,
+          scaledContext,
+          chart,
+          version === "burn" ? 50 : 5000
+        );
+      }
+
+      // Handle version changes
+      $("version").addEventListener("change", async (event) => {
+        await initializeVersion(event.target.value);
+        alert(`done: ${event.target.value}`);
+      });
+
+      // Initialize with default version (Burn)
+      initializeVersion("burn");
+
+      // Clear button handler
       $("clear").onclick = function () {
         fabricCanvas.clear();
         fabricCanvas.backgroundColor = backgroundColor;
         fabricCanvas.renderAll();
         mainContext.clearRect(0, 0, mainCanvasEl.width, mainCanvasEl.height);
         scaledContext.clearRect(0, 0, scaledCanvasEl.width, scaledCanvasEl.height);
-
         chart.data.datasets[0].data = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
         chart.update();
       };
-
-      let timeoutId;
-      let isDrawing = false;
-      let isTimeOutSet = false;
-
-      wasm().then((module) => {
-        const mnist = new Mnist();
-
-        async function fireOffInference() {
-          clearTimeout(timeoutId);
-          timeoutId = setTimeout(async () => {
-            isTimeOutSet = true;
-            fabricCanvas.freeDrawingBrush._finalizeAndAddPath();
-            const data = cropScaleGetImageData(mainContext, cropContext, scaledContext);
-            const output = await mnist.inference(data);
-            chart.data.datasets[0].data = output;
-            chart.update();
-            isTimeOutSet = false;
-          }, 50);
-          isTimeOutSet = true;
-        }
-
-        fabricCanvas.on("mouse:down", function (event) {
-          isDrawing = true;
-        });
-        fabricCanvas.on("mouse:up", async function (event) {
-          isDrawing = false;
-          await fireOffInference();
-        });
-
-        fabricCanvas.on("mouse:move", async function (event) {
-          if (isDrawing && isTimeOutSet == false) {
-            await fireOffInference();
-          }
-        });
-      });
     </script>
   </body>
 </html>

@@ -1,11 +1,9 @@
 /**
- * 
- * This demo is part of Burn project: https://github.com/tracel-ai/burn
+ * This demo supports both Burn and TensorFlow.js implementations
  * 
  * Released under a dual license: 
  * https://github.com/tracel-ai/burn/blob/main/LICENSE-MIT
  * https://github.com/tracel-ai/burn/blob/main/LICENSE-APACHE
- * 
  */
 
 /**
@@ -171,4 +169,91 @@ export function chartConfigBuilder(chartEl) {
             },
         },
     });
+}
+
+/**
+ * TensorFlow.js implementation of MNIST inference
+ */
+class TensorflowMnist {
+    constructor() {
+        this.model = null;
+        this.loadModel();
+    }
+
+    async loadModel() {
+        // Load the TensorFlow.js model
+        this.model = await tf.loadLayersModel('https://storage.googleapis.com/tfjs-models/tfjs/mnist_v1/model.json');
+    }
+
+    async inference(imageData) {
+        // Prepare the input tensor
+        const tensor = tf.tensor(imageData).reshape([1, 28, 28, 1]);
+        let predictions;
+        alert("inference");
+        for (let i = 0; i < 100; i++) {
+            await Promise.resolve(3000);
+        }
+        alert("inference2");
+        predictions = await this.model.predict(tensor).data();
+        return Array.from(predictions);
+    }
+}
+
+/**
+ * Factory class to manage different MNIST implementations
+ */
+export class MnistFactory {
+    static async create(version) {
+        if (version === 'tensorflow') {
+            return new TensorflowMnist();
+        } else {
+            const wasm = await import("./pkg/mnist_inference_web.js");
+            await wasm.default();
+            return new wasm.Mnist();
+        }
+    }
+}
+
+/**
+ * Initialize the MNIST demo with the selected implementation
+ */
+export async function initMnistDemo(version, fabricCanvas, mainContext, cropContext, scaledContext, chart, dur) {
+    // alert("initMnistDemo" + version + " " + dur);
+    const mnist = await MnistFactory.create(version);
+    let timeoutId;
+    let isDrawing = false;
+    let isTimeOutSet = false;
+
+    async function fireOffInference() {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(async () => {
+            isTimeOutSet = true;
+            fabricCanvas.freeDrawingBrush._finalizeAndAddPath();
+            const data = cropScaleGetImageData(mainContext, cropContext, scaledContext);
+            const output = await mnist.inference(data);
+            chart.data.datasets[0].data = output;
+            chart.update();
+            isTimeOutSet = false;
+        }, dur);
+        isTimeOutSet = true;
+    }
+
+    fabricCanvas.on("mouse:down", function (event) {
+        isDrawing = true;
+    });
+
+    fabricCanvas.on("mouse:up", async function (event) {
+        isDrawing = false;
+        await fireOffInference();
+    });
+
+    fabricCanvas.on("mouse:move", async function (event) {
+        if (isDrawing && isTimeOutSet == false) {
+            await fireOffInference();
+        }
+    });
+
+    return {
+        fireOffInference
+    };
 }
