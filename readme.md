@@ -9,12 +9,6 @@ An all-in-one AI development suite that simplifies, accelerates, and secures AI 
 
 ## 🚀 Features
 
-### 🖱️ Drag-and-Drop Visual Model Builder
-- **No-code AI**: Build, train, and deploy models without writing a single line of code.
-- **Real-time visualization**: Track model architecture and performance metrics.
-- **Custom AI components**: Modify every layer for fine-tuned control.
-- **Multi-model composition**: Combine different models into a single pipeline.
-
 ### ⚡ High-Performance C++ Core
 - **Blazing-fast model execution**, outperforming TensorFlow and PyTorch.
 - **Optimized memory management** for large-scale AI workloads.
